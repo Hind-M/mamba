@@ -76,6 +76,14 @@ namespace mamba
     void Context::use_default_signal_handler(bool val)
     {
         use_default_signal_handler_val = val;
+        if (use_default_signal_handler_val)
+        {
+            set_default_signal_handler();
+        }
+        else
+        {
+            reset_signal_handler();
+        }
     }
 
     void Context::enable_logging_and_signal_handling(Context& context)
@@ -110,6 +118,7 @@ namespace mamba
 
     Context::Context(const ContextOptions& options)
     {
+        printf("Context::context\n");
         on_ci = static_cast<bool>(util::get_env("CI"));
         prefix_params.root_prefix = util::get_env("MAMBA_ROOT_PREFIX").value_or("");
         prefix_params.conda_prefix = prefix_params.root_prefix;

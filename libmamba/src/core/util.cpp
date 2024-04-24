@@ -849,30 +849,30 @@ namespace mamba
         auto th = t.native_handle();
 
         int err = 0;
-        set_signal_handler(
-            [&th, &cv, &ret, &err](sigset_t sigset) -> int
-            {
-                int signum = 0;
-                sigwait(&sigset, &signum);
-                pthread_cancel(th);
-                err = EINTR;
-                ret = -1;
-                cv.notify_one();
-                return signum;
-            }
-        );
+        //         set_signal_handler(
+        //             [&th, &cv, &ret, &err](sigset_t sigset) -> int
+        //             {
+        //                 int signum = 0;
+        //                 sigwait(&sigset, &signum);
+        //                 pthread_cancel(th);
+        //                 err = EINTR;
+        //                 ret = -1;
+        //                 cv.notify_one();
+        //                 return signum;
+        //             }
+        //         );
 
         MainExecutor::instance().take_ownership(t.extract());
 
         {
-            std::unique_lock<std::mutex> l(m);
-            if (cv.wait_for(l, timeout) == std::cv_status::timeout)
-            {
-                pthread_cancel(th);
-                kill_receiver_thread();
-                err = EINTR;
-                ret = -1;
-            }
+            //             std::unique_lock<std::mutex> l(m);
+            //             if (cv.wait_for(l, timeout) == std::cv_status::timeout)
+            //             {
+            //                 pthread_cancel(th);
+            //                 kill_receiver_thread();
+            //                 err = EINTR;
+            //                 ret = -1;
+            //             }
         }
         set_default_signal_handler();
         errno = err;

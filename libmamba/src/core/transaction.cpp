@@ -361,6 +361,7 @@ namespace mamba
     bool
     MTransaction::execute(const Context& ctx, ChannelContext& channel_context, PrefixData& prefix)
     {
+        interrupt_scope enable_interruptions;
         using Solution = solver::Solution;
 
         // JSON output

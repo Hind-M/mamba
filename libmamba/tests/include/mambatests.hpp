@@ -33,7 +33,7 @@ namespace mambatests
     {
         // mamba::MainExecutor main_executor; // FIXME: reactivate once the tests are not indirectly
         // using this anymore
-        mamba::Context context{ { /* .enable_logging_and_signal_handling = */ true } };
+        mamba::Context context{ { /* .enable_logging_and_signal_handling = */ false } };
         mamba::Console console{ context };
     };
 

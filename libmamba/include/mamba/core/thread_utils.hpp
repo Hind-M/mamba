@@ -22,13 +22,38 @@ namespace mamba
      * thread interruption *
      ***********************/
 
-#ifndef _WIN32
-    void set_signal_handler(const std::function<void(sigset_t)>& handler);
+    void reset_signal_handler();
+    int increment_interrupt_scope();
+    int decrement_interrupt_scope();
 
-    int stop_receiver_thread();
-    int kill_receiver_thread();
-    void reset_sig_interrupted();
-#endif
+    class interrupt_scope
+    {
+    public:
+
+        interrupt_scope()
+        {
+            increment_interrupt_scope();
+        }
+
+        ~interrupt_scope()
+        {
+            decrement_interrupt_scope();
+        }
+
+        interrupt_scope(const interrupt_scope&) = delete;
+        interrupt_scope(interrupt_scope&&) = delete;
+
+        interrupt_scope& operator=(const interrupt_scope&) = delete;
+        interrupt_scope& operator=(interrupt_scope&&) = delete;
+    };
+
+    // #ifndef _WIN32
+    //     void set_signal_handler(const std::function<void(sigset_t)>& handler);
+    //
+    //     int stop_receiver_thread();
+    //     int kill_receiver_thread();
+    //     void reset_sig_interrupted();
+    // #endif
 
     void set_default_signal_handler();
     bool is_sig_interrupted() noexcept;

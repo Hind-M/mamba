@@ -5,7 +5,9 @@
 // The full license is in the file LICENSE, distributed with this software.
 
 #include <chrono>
+#include <iostream>
 #include <sstream>
+#include <thread>
 #include <tuple>
 
 #include <doctest/doctest.h>
@@ -17,6 +19,7 @@
 #include "mamba/core/link.hpp"
 #include "mamba/core/output.hpp"
 #include "mamba/core/subdirdata.hpp"
+#include "mamba/core/thread_utils.hpp"
 #include "mamba/util/build.hpp"
 #include "mamba/util/path_manip.hpp"
 
@@ -140,6 +143,18 @@ namespace mamba
                 prefix = "/home/user/env";
                 CHECK_EQ(env_name(ctx, prefix), "/home/user/env");
             }
+        }
+
+        TEST_CASE("sig_int")
+        {
+            LOG_ERROR << "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTEST";
+            //             auto& ctx = mambatests::context();
+            //             ctx.use_default_signal_handler(false);
+            interrupt_scope inter;
+            mamba::set_default_signal_handler();
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(10000ms);  // 10sec
+            CHECK(false);
         }
     }
 
