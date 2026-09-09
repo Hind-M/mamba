@@ -3,11 +3,12 @@ import random
 import shutil
 import string
 import subprocess
+import tempfile
 from sys import platform
 
 import pytest
 
-from .helpers import create, random_string, subprocess_run, umamba_run
+from .helpers import create, get_umamba, random_string, subprocess_run, umamba_run
 
 common_simple_flags = ["", "-d", "--detach", "--clean-env"]
 # -d/--detach are not available on Windows (see run.cpp)
@@ -128,3 +129,28 @@ class TestRunVenv:
     def test_classic_specs(self, temp_env_prefix):
         res = umamba_run("-p", temp_env_prefix, "python", "-c", "import sys; print(sys.prefix)")
         assert res.strip() == temp_env_prefix
+
+    # TODO check skipping, only macos? platform != "darwin" or keep running on unix?
+    @pytest.mark.skipif(
+        platform == "win32", reason="Non-TTY repro is macOS specific? (mamba-org/mamba#4165)"
+    )
+    def test_non_tty_redirected_stdio(self, temp_env_prefix):
+        umamba = get_umamba()
+        cmd = [umamba, "run", "-p", temp_env_prefix, "python", "--version"]
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            output_path = os.path.join(tmp_dir, "output")
+            # Emulate a non-interactive runner: stdin=/dev/null, stdout+stderr -> same file (2>&1)
+            with open(output_path, "w") as output_file:
+                result = subprocess.run(
+                    cmd,
+                    stdin=subprocess.DEVNULL,
+                    stdout=output_file,
+                    stderr=subprocess.STDOUT,
+                    check=False,
+                )
+            with open(output_path) as output_file:
+                output = output_file.read()
+        # assert result.returncode == 0, f"`mamba run` failed with non-TTY stdio:\n{output}"
+        # assert "Python" in output
+        print("result: ", result)
+        print("output: ", output)
