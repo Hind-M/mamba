@@ -280,7 +280,7 @@ jobs:
           export TEST_MAMBA_EXE=$(pwd)/build/micromamba/mamba
           unset CONDARC  # Interferes with tests
           # Only rerun flaky tests on the `main` branch
-          python -m pytest -s micromamba/tests/test_run.py::TestRunVenv::test_non_tty_redirected_stdio \
+          python -m pytest -s micromamba/tests/test_run.py::TestRunVenv::test_non_tty_redirected_stdio micromamba/tests/test_run.py::TestRunVenv::test_run_start_failure_reports_real_error \
               -vv
               #--durations=50 \
               #${{ runner.debug == 'true' && '--capture=tee-sys' || '' }} \
