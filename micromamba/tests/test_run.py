@@ -125,6 +125,18 @@ def temp_env_prefix():
     os.environ["CONDA_PREFIX"] = previous_prefix
 
 
+@pytest.fixture()
+def broken_shell_bin(tmp_path):
+    """Directory holding an executable `bash` that fails at exec time
+    (missing shebang interpreter -> execve ENOENT -> proc.start() fails)."""
+    fake_bin = tmp_path / "fakebin"
+    fake_bin.mkdir()
+    fake_bash = fake_bin / "bash"
+    fake_bash.write_text("#!/nonexistent/interpreter\n")
+    fake_bash.chmod(fake_bash.stat().st_mode | 0o111)
+    return fake_bin
+
+
 class TestRunVenv:
     def test_classic_specs(self, temp_env_prefix):
         res = umamba_run("-p", temp_env_prefix, "python", "-c", "import sys; print(sys.prefix)")
@@ -154,3 +166,32 @@ class TestRunVenv:
         # assert "Python" in output
         print("result: ", result)
         print("output: ", output)
+
+    # TODO check skipping, only macos? platform != "darwin" or keep running on unix?
+    @pytest.mark.skipif(
+        platform == "win32", reason="Non-TTY repro is macOS specific? (mamba-org/mamba#4165)"
+    )
+    def test_run_start_failure_reports_real_error(
+        self, temp_env_prefix, broken_shell_bin, tmp_path
+    ):
+        env = dict(os.environ)
+        env["PATH"] = os.pathsep.join([str(broken_shell_bin), env["PATH"]])
+
+        output_path = tmp_path / "output"
+        with open(output_path, "w") as output_file:
+            result = subprocess.run(
+                [get_umamba(), "run", "-p", temp_env_prefix, "python", "--version"],
+                env=env,
+                stdin=subprocess.DEVNULL,  # < /dev/null
+                stdout=output_file,  # > file
+                stderr=subprocess.STDOUT,  # 2>&1
+                check=False,
+            )
+        output = output_path.read_text()
+
+        print("result: ", result)
+        print("output: ", output)
+        # assert result.returncode != 0
+        # assert "Undefined error" not in output, output
+        # assert "Success" not in output, output
+        # assert "; error code " in output, output
