@@ -456,13 +456,21 @@ namespace mamba
             std::error_code lec;
             static reproc::process proc;
 
+            std::cout << "Starting the cmd: " << std::endl;
+            for (const auto& arg : wrapped_command)
+            {
+                std::cout << arg << " ";
+            }
+            std::cout << '\n';
+
             lec = proc.start(wrapped_command, opt);
 
             std::tie(pid, lec) = proc.pid();
 
             if (lec)
             {
-                std::cerr << ec.message() << '\n';
+                std::cerr << ec.message() << '\n';  // TODO change to lec
+                std::cerr << lec.message() << " ; error code " << lec.value() << '\n';
                 return 1;
             }
 
