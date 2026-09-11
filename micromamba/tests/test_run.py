@@ -171,8 +171,9 @@ class TestRunVenv:
     @pytest.mark.skipif(
         platform == "win32", reason="Non-TTY repro is macOS specific? (mamba-org/mamba#4165)"
     )
+    @pytest.mark.parametrize("detach_flags", [[], ["-d"]])
     def test_run_start_failure_reports_real_error(
-        self, temp_env_prefix, broken_shell_bin, tmp_path
+        self, temp_env_prefix, broken_shell_bin, tmp_path, detach_flags
     ):
         env = dict(os.environ)
         env["PATH"] = os.pathsep.join([str(broken_shell_bin), env["PATH"]])
@@ -180,7 +181,7 @@ class TestRunVenv:
         output_path = tmp_path / "output"
         with open(output_path, "w") as output_file:
             result = subprocess.run(
-                [get_umamba(), "run", "-p", temp_env_prefix, "python", "--version"],
+                [get_umamba(), "run", *detach_flags, "-p", temp_env_prefix, "python", "--version"],
                 env=env,
                 stdin=subprocess.DEVNULL,  # < /dev/null
                 stdout=output_file,  # > file
